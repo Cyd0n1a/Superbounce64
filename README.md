@@ -42,5 +42,6 @@ The build script pulls `ghcr.io/dragonminded/libdragon:latest` and installs libd
 
 ## Credits
 
-(c) 2026 Amanda Hariette-Scott & Cydonis Heavy Industries  
-https://cydonis.co.uk/about
+**(c) 2026 Amanda Hariette-Scott & Cydonis Heavy Industries (C.H.I), Ltd.**
+
+**https://cydonis.co.uk/about**
