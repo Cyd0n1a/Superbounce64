@@ -64,7 +64,6 @@
 #include "game.h"
 #include <math.h>
 #include <stdio.h>
-#include <joypad.h>
 
 static float render_time = 0.f;
 
@@ -338,9 +337,8 @@ void render_frame(surface_t *disp) {
     graphics_set_color(graphics_make_color(255, 255, 255, 255),
                        graphics_make_color(0, 0, 0, 0));
     char buf[48];
-    snprintf(buf, sizeof(buf), "LVL:%d  CLM:%d%%  LIVES:%d%s",
-             g.level, g.claimed_pct, g.lives,
-             joypad_get_rumble_supported(JOYPAD_PORT_1) ? "  R" : "");
+    snprintf(buf, sizeof(buf), "LVL:%d  CLM:%d%%  LIVES:%d",
+             g.level, g.claimed_pct, g.lives);
     graphics_draw_text(disp, 4, 4, buf);
 
     if (g.state == STATE_TITLE) {
