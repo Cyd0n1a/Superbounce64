@@ -1,5 +1,14 @@
 # Release Notes
 
+## v0.9a — 2026
+
+### Performance
+- **Claimed territory fill** — replaced per-cell `rdpq_fill_rectangle` (up to 3,600 RDP commands at 75% claimed) with a run-length scan that emits one rectangle per row of consecutive claimed cells (at most 60). This was the primary cause of lag worsening as levels progressed.
+- **Palette cycling** — precompute the 256-entry rainbow palette once at startup; each frame now does two `memcpy` calls to rotate it by an index offset instead of recomputing 256 HSV→RGB conversions.
+- **RDP mode setup** — `rdpq_set_mode_standard` + combiner + blender are now called once per draw group (walls, balls, cursor) rather than once per wall segment or ball edge. The breathing-pulse `sinf` is also computed once per frame and passed through, not evaluated per segment.
+
+---
+
 ## v0.8b — 2026
 
 ### Fixes
