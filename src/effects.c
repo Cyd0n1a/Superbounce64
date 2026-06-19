@@ -66,8 +66,9 @@
 #define PLASMA_H 32
 
 static uint8_t  plasma_tex[PLASMA_H][PLASMA_W] __attribute__((aligned(8)));
-static uint16_t tlut[256];        /* RGBA16 palette */
-static float    palette_phase;    /* rotates each frame */
+static uint16_t tlut[256];          /* RGBA16 palette (rotated view of base) */
+static uint16_t base_palette[256];  /* precomputed rainbow, never mutated */
+static float    palette_phase;      /* 0..1, drives rotation offset */
 static float    grad_phase;       /* animates Gouraud corner colors */
 
 /* Convert hue (0..1) to RGBA16 5-5-5-1 */
@@ -106,9 +107,10 @@ void effects_init(void) {
         }
     }
 
-    /* Initial palette */
+    /* Precompute rainbow palette once — rotation is done at update time */
     for (int i = 0; i < 256; i++)
-        tlut[i] = hue_to_rgba16((float)i / 256.f, 0.9f, 0.7f);
+        base_palette[i] = hue_to_rgba16((float)i / 256.f, 0.9f, 0.6f);
+    memcpy(tlut, base_palette, sizeof(tlut));
 }
 
 void effects_update(float dt) {
@@ -117,12 +119,10 @@ void effects_update(float dt) {
     if (palette_phase > 1.f) palette_phase -= 1.f;
     if (grad_phase    > 1.f) grad_phase    -= 1.f;
 
-    /* Rotate palette by shifting all entries */
-    for (int i = 0; i < 256; i++) {
-        float h = palette_phase + (float)i / 256.f;
-        if (h > 1.f) h -= 1.f;
-        tlut[i] = hue_to_rgba16(h, 0.9f, 0.6f);
-    }
+    /* Rotate palette by copying base_palette with a shifted start index */
+    int offset = (int)(palette_phase * 256.f) & 0xFF;
+    memcpy(tlut,           base_palette + offset, (256 - offset) * sizeof(uint16_t));
+    memcpy(tlut + (256 - offset), base_palette,   offset         * sizeof(uint16_t));
 }
 
 void effects_draw_background(surface_t *surf) {

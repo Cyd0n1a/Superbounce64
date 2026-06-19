@@ -132,14 +132,7 @@ static void draw_line_quad(float x0, float y0, float x1, float y1,
 }
 
 static void draw_line_glow(float x0, float y0, float x1, float y1,
-                           float r, float g, float b) {
-    /* Pulse the outer glow with time for a breathing effect */
-    float pulse = 0.12f + 0.06f * sinf(render_time * 4.f);
-
-    rdpq_set_mode_standard();
-    rdpq_mode_combiner(RDPQ_COMBINER_SHADE);
-    rdpq_mode_blender(RDPQ_BLENDER_MULTIPLY);
-
+                           float r, float g, float b, float pulse) {
     draw_line_quad(x0, y0, x1, y1, 7.f, r, g, b, pulse);
     draw_line_quad(x0, y0, x1, y1, 3.f, r, g, b, 120.f/255.f);
     draw_line_quad(x0, y0, x1, y1, 1.f, r, g, b, 1.f);
@@ -175,11 +168,15 @@ static void draw_grid_overlay(void) {
 static void draw_claimed(void) {
     rdpq_set_mode_fill(RGBA32(0, 0, 30, 255));
     for (int cy = 0; cy < GRID_H; cy++) {
-        for (int cx = 0; cx < GRID_W; cx++) {
-            if (field[cy][cx] == CELL_CLAIMED) {
-                int px = cx * CELL_SIZE;
-                int py = cy * CELL_SIZE;
-                rdpq_fill_rectangle(px, py, px + CELL_SIZE, py + CELL_SIZE);
+        int run_start = -1;
+        for (int cx = 0; cx <= GRID_W; cx++) {
+            int claimed = (cx < GRID_W) && (field[cy][cx] == CELL_CLAIMED);
+            if (claimed && run_start < 0) {
+                run_start = cx;
+            } else if (!claimed && run_start >= 0) {
+                rdpq_fill_rectangle(run_start * CELL_SIZE, cy * CELL_SIZE,
+                                    cx * CELL_SIZE, (cy + 1) * CELL_SIZE);
+                run_start = -1;
             }
         }
     }
@@ -190,6 +187,12 @@ static void draw_claimed(void) {
 /* ------------------------------------------------------------------ */
 
 static void draw_walls(void) {
+    float pulse = 0.12f + 0.06f * sinf(render_time * 4.f);
+
+    rdpq_set_mode_standard();
+    rdpq_mode_combiner(RDPQ_COMBINER_SHADE);
+    rdpq_mode_blender(RDPQ_BLENDER_MULTIPLY);
+
     /* Draw horizontal wall segments */
     for (int cy = 0; cy < GRID_H; cy++) {
         int border_row = (cy == 0 || cy == GRID_H - 1);
@@ -205,7 +208,7 @@ static void draw_walls(void) {
                 if (border_row)
                     draw_line_quad(x0, y, x1, y, 2.f, 0.1f, 0.15f, 0.35f, 0.9f);
                 else
-                    draw_line_glow(x0, y, x1, y, 0.4f, 0.8f, 1.f);
+                    draw_line_glow(x0, y, x1, y, 0.4f, 0.8f, 1.f, pulse);
                 run_start = -1;
             }
         }
@@ -226,7 +229,7 @@ static void draw_walls(void) {
                 if (border_col)
                     draw_line_quad(x, y0, x, y1, 2.f, 0.1f, 0.15f, 0.35f, 0.9f);
                 else
-                    draw_line_glow(x, y0, x, y1, 0.4f, 0.8f, 1.f);
+                    draw_line_glow(x, y0, x, y1, 0.4f, 0.8f, 1.f, pulse);
                 run_start = -1;
             }
         }
@@ -251,7 +254,7 @@ static const float BALL_COLORS[8][3] = {
 #define BALL_RADIUS 6.f
 #define BALL_SIDES  6
 
-static void draw_ball(float x, float y, float r, float g, float b) {
+static void draw_ball(float x, float y, float r, float g, float b, float pulse) {
     for (int i = 0; i < BALL_SIDES; i++) {
         float a0 = (float)i       / BALL_SIDES * 6.2832f;
         float a1 = (float)(i + 1) / BALL_SIDES * 6.2832f;
@@ -259,14 +262,18 @@ static void draw_ball(float x, float y, float r, float g, float b) {
         float y0 = y + sinf(a0) * BALL_RADIUS;
         float x1 = x + cosf(a1) * BALL_RADIUS;
         float y1 = y + sinf(a1) * BALL_RADIUS;
-        draw_line_glow(x0, y0, x1, y1, r, g, b);
+        draw_line_glow(x0, y0, x1, y1, r, g, b, pulse);
     }
 }
 
 static void draw_balls(void) {
+    float pulse = 0.12f + 0.06f * sinf(render_time * 4.f);
+    rdpq_set_mode_standard();
+    rdpq_mode_combiner(RDPQ_COMBINER_SHADE);
+    rdpq_mode_blender(RDPQ_BLENDER_MULTIPLY);
     for (int i = 0; i < num_balls; i++) {
         const float *c = BALL_COLORS[balls[i].color_idx];
-        draw_ball(balls[i].x, balls[i].y, c[0], c[1], c[2]);
+        draw_ball(balls[i].x, balls[i].y, c[0], c[1], c[2], pulse);
     }
 }
 
@@ -293,8 +300,11 @@ static void draw_preview(void) {
 static void draw_cursor(void) {
     float x = player_x, y = player_y;
     float sz = 5.f;
-    draw_line_glow(x - sz, y, x + sz, y, 1.f, 1.f, 1.f);
-    draw_line_glow(x, y - sz, x, y + sz, 1.f, 1.f, 1.f);
+    rdpq_set_mode_standard();
+    rdpq_mode_combiner(RDPQ_COMBINER_SHADE);
+    rdpq_mode_blender(RDPQ_BLENDER_MULTIPLY);
+    draw_line_glow(x - sz, y, x + sz, y, 1.f, 1.f, 1.f, 0.18f);
+    draw_line_glow(x, y - sz, x, y + sz, 1.f, 1.f, 1.f, 0.18f);
 }
 
 /* ------------------------------------------------------------------ */
