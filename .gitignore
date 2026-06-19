@@ -1,0 +1,7 @@
+build/
+*.z64
+*.elf
+*.map
+*.sym
+*.stripped
+*.d
