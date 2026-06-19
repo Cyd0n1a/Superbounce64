@@ -75,9 +75,9 @@ static int   rumble_frames      = 0;
 #define CURSOR_SPEED   120.f
 #define STICK_DEADZONE  10
 
-/* Rumble for N frames (if hardware supports it) */
+/* Rumble for N frames. joypad_set_rumble_active() is a no-op when no pak is
+   present, so no need to guard with joypad_get_rumble_supported() here. */
 static void rumble_for(int frames) {
-    if (!joypad_get_rumble_supported(JOYPAD_PORT_1)) return;
     joypad_set_rumble_active(JOYPAD_PORT_1, true);
     rumble_frames = frames;
 }
