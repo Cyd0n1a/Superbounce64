@@ -1,5 +1,12 @@
 # Release Notes
 
+## v0.8b — 2026
+
+### Fixes
+- **Music now plays** — `dfs_open()` takes a bare filename without the `rom:/` prefix; passing the full path caused a silent error that prevented `xm64player_open` from ever being called.
+
+---
+
 ## v0.8a — 2026
 
 ### New Features
