@@ -1,6 +1,6 @@
 # Release Notes
 
-## v0.7a — 2026
+## v0.8a — 2026
 
 ### New Features
 
@@ -10,7 +10,7 @@
 - **Score system** — each wall placement scores `territory_gained% × level × 10` points. Score accumulates across levels and resets on a new game. Current score and session best are shown in the HUD during play.
 
 **Audio**
-- **Ambient music** — continuous procedural drone: three sine voices forming an Am chord (A2 / C3 / E3) with independent slow LFOs that drift the pitch gently, giving a breathing psychedelic quality throughout play and the title screen.
+- **Mozart piano music** — looping XM module music (`mozartku.xm`) played back via libdragon's RSP hardware mixer (`xm64player`). Runs entirely off the RSP with no CPU overhead. Coexists with procedural SFX via saturating-add mixing. Music is embedded in the ROM filesystem (DFS) and converted at build time by `audioconv64`.
 - **Rumble Pak support** — brief tap on successful wall placement, sustained buzz on a life lost, medium pulse on level complete. Requires a Rumble Pak in controller port 1 (configure in emulator accessory settings).
 
 **Saving**
@@ -60,7 +60,7 @@ First public release of Superbounce64.
 - Fixed 60 Hz timestep game loop with real-time visual update
 - libdragon included as a git submodule
 
-### Known Issues (resolved in v0.7a)
-- No music
-- No high score persistence
-- No pause menu
+### Known Issues (resolved in v0.7a–v0.8a)
+- No music (replaced with Mozart piano XM in v0.8a)
+- No high score persistence (resolved in v0.7a)
+- No pause menu (resolved in v0.7a)
