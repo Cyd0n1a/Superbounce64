@@ -138,6 +138,7 @@ int main(void) {
     joypad_init();
     timer_init();
 
+    dfs_init(DFS_DEFAULT_LOCATION);
     sfx_init();
     effects_init();
     game_init();
