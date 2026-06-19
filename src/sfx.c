@@ -153,14 +153,10 @@ void sfx_init(void) {
     audio_init(SAMPLE_RATE, 4);
     mixer_init(32);
 
-    int fh = dfs_open("rom:/mozartku.xm64");
-    if (fh >= 0) {
-        dfs_close(fh);
-        xm64player_open(&music_player, "rom:/mozartku.xm64");
-        xm64player_set_vol(&music_player, 0.75f);
-        xm64player_play(&music_player, 0);
-        music_loaded = true;
-    }
+    xm64player_open(&music_player, "rom:/mozartku.xm64");
+    xm64player_set_vol(&music_player, 0.75f);
+    xm64player_play(&music_player, 0);
+    music_loaded = true;
 }
 
 void sfx_poll(void) {
