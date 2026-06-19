@@ -64,6 +64,7 @@
 #include "effects.h"
 #include "render.h"
 #include "sfx.h"
+#include "save.h"
 
 #define STEP_US 16667   /* ~60 Hz fixed timestep */
 
@@ -71,8 +72,16 @@ static void update(float dt) {
     player_rumble_tick();
 
     if (g.state == STATE_TITLE) {
+        save_try_load();
+        /* Sync loaded high score into game state once available */
+        uint32_t saved_hi = save_get_high_score();
+        if ((int)saved_hi > g.high_score)
+            g.high_score = (int)saved_hi;
+
         joypad_buttons_t pressed = joypad_get_buttons_pressed(JOYPAD_PORT_1);
         if (pressed.start || pressed.a) {
+            g.score          = 0;
+            g.new_high_score = 0;
             game_next_level();
         }
         return;
@@ -83,12 +92,15 @@ static void update(float dt) {
         if (g.state_timer <= 0.f) {
             if (g.state == STATE_WALL_FAIL) {
                 g.lives--;
-                if (g.lives <= 0)
+                if (g.lives <= 0) {
+                    save_write_high_score((uint32_t)g.high_score);
                     g.state = STATE_GAME_OVER;
-                else
+                } else {
                     g.state = STATE_PLAYING;
+                }
             } else {
                 g.level++;
+                g.new_high_score = 0;
                 game_next_level();
             }
         }
@@ -98,7 +110,10 @@ static void update(float dt) {
 
     if (g.state == STATE_GAME_OVER) {
         joypad_buttons_t pressed = joypad_get_buttons_pressed(JOYPAD_PORT_1);
-        if (pressed.start) game_init();
+        if (pressed.start) {
+            g.high_score = (int)save_get_high_score();
+            game_init();
+        }
         return;
     }
 

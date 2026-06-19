@@ -64,11 +64,14 @@
 Game g;
 
 void game_init(void) {
-    g.level       = 1;
-    g.lives       = MAX_LIVES;
-    g.claimed_pct = 0;
-    g.state       = STATE_TITLE;
-    g.state_timer = 0.f;
+    g.level          = 1;
+    g.lives          = MAX_LIVES;
+    g.claimed_pct    = 0;
+    g.state          = STATE_TITLE;
+    g.state_timer    = 0.f;
+    g.score          = 0;
+    g.new_high_score = 0;
+    /* g.high_score is set separately from the save system */
 }
 
 void game_next_level(void) {

@@ -28,6 +28,9 @@ typedef struct {
     int       lives;
     int       claimed_pct;
     float     state_timer;   /* seconds remaining in timed states */
+    int       score;
+    int       high_score;
+    int       new_high_score;  /* set to 1 briefly when high score is beaten */
 } Game;
 
 extern Game g;

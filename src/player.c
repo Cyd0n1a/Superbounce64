@@ -206,7 +206,18 @@ static void place_wall(int cx, int cy, int horizontal) {
     float bxs[MAX_BALLS], bys[MAX_BALLS];
     for (int i = 0; i < num_balls; i++) { bxs[i] = balls[i].x; bys[i] = balls[i].y; }
 
+    int old_pct   = g.claimed_pct;
     g.claimed_pct = field_flood_and_claim(bxs, bys, num_balls);
+
+    int gained = g.claimed_pct - old_pct;
+    if (gained > 0) {
+        g.score += gained * g.level * 10;
+        if (g.score > g.high_score) {
+            g.high_score     = g.score;
+            g.new_high_score = 1;
+        }
+    }
+
     if (g.claimed_pct >= CLAIM_TARGET) {
         g.state = STATE_LEVEL_COMPLETE;
         g.state_timer = 2.0f;

@@ -10,7 +10,8 @@ OBJS = $(BUILD_DIR)/src/main.o \
        $(BUILD_DIR)/src/balls.o \
        $(BUILD_DIR)/src/render.o \
        $(BUILD_DIR)/src/effects.o \
-       $(BUILD_DIR)/src/sfx.o
+       $(BUILD_DIR)/src/sfx.o \
+       $(BUILD_DIR)/src/save.o
 
 game.z64: N64_ROM_TITLE="Superbounce64"
 game.z64: $(BUILD_DIR)/game.elf

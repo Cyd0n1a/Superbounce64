@@ -341,6 +341,12 @@ void render_frame(surface_t *disp) {
              g.level, g.claimed_pct, g.lives);
     graphics_draw_text(disp, 4, 4, buf);
 
+    if (g.state != STATE_TITLE) {
+        snprintf(buf, sizeof(buf), "SCORE:%5d  BEST:%5d",
+                 g.score, g.high_score);
+        graphics_draw_text(disp, 4, 14, buf);
+    }
+
     if (g.state == STATE_TITLE) {
         draw_wavy_rainbow(disp, 84, 80, "SUPERBOUNCE64",
                           8.f,   /* wave amplitude in pixels */
@@ -353,16 +359,36 @@ void render_frame(surface_t *disp) {
             graphics_draw_text(disp, 112, 140, "PRESS START");
         }
 
+        if (g.high_score > 0) {
+            snprintf(buf, sizeof(buf), "BEST: %d", g.high_score);
+            graphics_set_color(graphics_make_color(255, 220, 80, 255),
+                               graphics_make_color(0, 0, 0, 0));
+            graphics_draw_text(disp, 128, 164, buf);
+        }
+
         graphics_set_color(graphics_make_color(140, 140, 140, 255),
                            graphics_make_color(0, 0, 0, 0));
         graphics_draw_text(disp,  40, 196, "(c) 2026 Amanda Hariette-Scott");
         graphics_draw_text(disp,  56, 208, "& Cydonis Heavy Industries");
         graphics_draw_text(disp,  84, 220, "cydonis.co.uk/about");
     } else if (g.state == STATE_GAME_OVER) {
-        graphics_draw_text(disp, 88,  108, "GAME  OVER");
-        graphics_draw_text(disp, 56,  124, "PRESS START TO RETRY");
+        graphics_draw_text(disp,  88, 100, "GAME  OVER");
+        snprintf(buf, sizeof(buf), "SCORE: %d", g.score);
+        graphics_draw_text(disp, 112, 116, buf);
+        if (g.new_high_score) {
+            if ((int)(render_time * 3.f) % 2 == 0) {
+                graphics_set_color(graphics_make_color(255, 220, 0, 255),
+                                   graphics_make_color(0, 0, 0, 0));
+                graphics_draw_text(disp, 72, 128, "NEW HIGH SCORE!");
+                graphics_set_color(graphics_make_color(255, 255, 255, 255),
+                                   graphics_make_color(0, 0, 0, 0));
+            }
+        }
+        graphics_draw_text(disp, 56, 140, "PRESS START TO RETRY");
     } else if (g.state == STATE_LEVEL_COMPLETE) {
-        graphics_draw_text(disp, 80,  116, "LEVEL COMPLETE!");
+        graphics_draw_text(disp, 80, 108, "LEVEL COMPLETE!");
+        snprintf(buf, sizeof(buf), "SCORE: %d", g.score);
+        graphics_draw_text(disp, 112, 120, buf);
     }
 
     display_show(disp);
