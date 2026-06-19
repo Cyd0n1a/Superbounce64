@@ -87,6 +87,17 @@ static void update(float dt) {
         return;
     }
 
+    if (g.state == STATE_PLAYING) {
+        joypad_buttons_t pressed = joypad_get_buttons_pressed(JOYPAD_PORT_1);
+        if (pressed.start) { g.state = STATE_PAUSED; return; }
+    }
+
+    if (g.state == STATE_PAUSED) {
+        joypad_buttons_t pressed = joypad_get_buttons_pressed(JOYPAD_PORT_1);
+        if (pressed.start) g.state = STATE_PLAYING;
+        return;
+    }
+
     if (g.state == STATE_WALL_FAIL || g.state == STATE_LEVEL_COMPLETE) {
         g.state_timer -= dt;
         if (g.state_timer <= 0.f) {

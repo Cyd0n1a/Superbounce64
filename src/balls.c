@@ -24,11 +24,20 @@ const float (*balls_color_table(void))[3] { return ball_colors; }
 
 void balls_init(int count, float speed) {
     num_balls = count;
+    /* Divide playfield into a grid and place one ball per cell.
+       This guarantees even spread regardless of ball count. */
+    int cols = (count <= 4) ? 2 : 3;
+    int rows = (count + cols - 1) / cols;
+    float margin = (float)(CELL_SIZE * 6);
+    float cw = (SCREEN_W - margin * 2.f) / (float)cols;
+    float ch = (SCREEN_H - margin * 2.f) / (float)rows;
     for (int i = 0; i < count; i++) {
-        /* Place balls in the interior, spaced out */
-        balls[i].x = (float)(CELL_SIZE * (10 + (i * 15) % (GRID_W - 20)));
-        balls[i].y = (float)(CELL_SIZE * (10 + (i *  9) % (GRID_H - 20)));
-        float angle = (float)i * 1.1f;
+        int col = i % cols;
+        int row = i / cols;
+        balls[i].x = margin + cw * (col + 0.5f);
+        balls[i].y = margin + ch * (row + 0.5f);
+        /* Evenly spread launch angles so balls don't all go the same way */
+        float angle = (float)i * (6.28318f / (float)count) + 0.4f;
         balls[i].vx = cosf(angle) * speed;
         balls[i].vy = sinf(angle) * speed;
         balls[i].color_idx = (uint8_t)(i % 8);

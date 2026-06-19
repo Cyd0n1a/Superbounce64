@@ -190,8 +190,9 @@ static void draw_claimed(void) {
 /* ------------------------------------------------------------------ */
 
 static void draw_walls(void) {
-    /* Draw horizontal wall segments (scan each row for runs of WALL cells) */
+    /* Draw horizontal wall segments */
     for (int cy = 0; cy < GRID_H; cy++) {
+        int border_row = (cy == 0 || cy == GRID_H - 1);
         int run_start = -1;
         for (int cx = 0; cx <= GRID_W; cx++) {
             int is_wall = (cx < GRID_W) && (field[cy][cx] == CELL_WALL);
@@ -201,7 +202,10 @@ static void draw_walls(void) {
                 float y  = cy * CELL_SIZE + CELL_SIZE * 0.5f;
                 float x0 = run_start * CELL_SIZE;
                 float x1 = cx * CELL_SIZE;
-                draw_line_glow(x0, y, x1, y, 0.4f, 0.8f, 1.f);
+                if (border_row)
+                    draw_line_quad(x0, y, x1, y, 2.f, 0.1f, 0.15f, 0.35f, 0.9f);
+                else
+                    draw_line_glow(x0, y, x1, y, 0.4f, 0.8f, 1.f);
                 run_start = -1;
             }
         }
@@ -209,6 +213,7 @@ static void draw_walls(void) {
 
     /* Draw vertical wall segments */
     for (int cx = 0; cx < GRID_W; cx++) {
+        int border_col = (cx == 0 || cx == GRID_W - 1);
         int run_start = -1;
         for (int cy = 0; cy <= GRID_H; cy++) {
             int is_wall = (cy < GRID_H) && (field[cy][cx] == CELL_WALL);
@@ -218,7 +223,10 @@ static void draw_walls(void) {
                 float x  = cx * CELL_SIZE + CELL_SIZE * 0.5f;
                 float y0 = run_start * CELL_SIZE;
                 float y1 = cy * CELL_SIZE;
-                draw_line_glow(x, y0, x, y1, 0.4f, 0.8f, 1.f);
+                if (border_col)
+                    draw_line_quad(x, y0, x, y1, 2.f, 0.1f, 0.15f, 0.35f, 0.9f);
+                else
+                    draw_line_glow(x, y0, x, y1, 0.4f, 0.8f, 1.f);
                 run_start = -1;
             }
         }
@@ -321,13 +329,15 @@ void render_frame(surface_t *disp) {
     /* 7. Cursor */
     draw_cursor();
 
-    /* 8. Flash overlay for transient states */
+    /* 8. Flash / pause overlay */
     if (g.state == STATE_WALL_FAIL) {
         float t = g.state_timer / 0.5f;
         effects_draw_flash(1.f, 0.f, 0.f, t * 0.5f);
     } else if (g.state == STATE_LEVEL_COMPLETE) {
         float t = 1.f - g.state_timer / 2.f;
         effects_draw_flash(1.f, 1.f, 1.f, t * 0.6f);
+    } else if (g.state == STATE_PAUSED) {
+        effects_draw_flash(0.f, 0.f, 0.f, 0.55f);
     }
 
     /* 9. Flush all RDP commands before software text draw */
@@ -389,6 +399,13 @@ void render_frame(surface_t *disp) {
         graphics_draw_text(disp, 80, 108, "LEVEL COMPLETE!");
         snprintf(buf, sizeof(buf), "SCORE: %d", g.score);
         graphics_draw_text(disp, 112, 120, buf);
+    } else if (g.state == STATE_PAUSED) {
+        graphics_draw_text(disp, 128, 108, "PAUSED");
+        graphics_set_color(graphics_make_color(160, 160, 160, 255),
+                           graphics_make_color(0, 0, 0, 0));
+        graphics_draw_text(disp, 80, 124, "START TO RESUME");
+        graphics_set_color(graphics_make_color(255, 255, 255, 255),
+                           graphics_make_color(0, 0, 0, 0));
     }
 
     display_show(disp);

@@ -7,6 +7,26 @@
 #define SAMPLE_RATE  22050
 #define MAX_VOICES   4
 
+/* --- Ambient music --- */
+/* Three sine drones forming an Am chord (110, 130.8, 165 Hz) with
+   independent slow LFOs that give a gentle pitch drift. */
+#define MUSIC_VOICES 3
+
+typedef struct {
+    float base_freq;
+    float lfo_rate;   /* Hz: how fast the pitch drifts */
+    float lfo_depth;  /* Hz: how far the pitch drifts */
+    float lfo_phase;  /* 0..1 */
+    float osc_phase;  /* 0..1 */
+    float volume;
+} MusicVoice;
+
+static MusicVoice music_voices[MUSIC_VOICES] = {
+    { 110.0f, 0.13f, 2.5f, 0.0f, 0.0f, 0.09f },   /* A2 */
+    { 130.8f, 0.08f, 2.0f, 0.3f, 0.0f, 0.07f },   /* C3 */
+    { 165.0f, 0.19f, 3.0f, 0.7f, 0.0f, 0.08f },   /* E3 */
+};
+
 typedef struct {
     int   active;
     int   pos;           /* samples elapsed */
@@ -136,6 +156,17 @@ static void sfx_fill(short *buf, size_t n_frames) {
 
             vp->pos++;
             if (vp->pos >= vp->len) vp->active = 0;
+        }
+
+        /* Mix in ambient music drones */
+        for (int m = 0; m < MUSIC_VOICES; m++) {
+            MusicVoice *mv = &music_voices[m];
+            mv->lfo_phase += mv->lfo_rate / (float)SAMPLE_RATE;
+            if (mv->lfo_phase >= 1.f) mv->lfo_phase -= 1.f;
+            float freq = mv->base_freq + sinf(mv->lfo_phase * 6.28318f) * mv->lfo_depth;
+            mv->osc_phase += freq / (float)SAMPLE_RATE;
+            if (mv->osc_phase >= 1.f) mv->osc_phase -= 1.f;
+            sample += sinf(mv->osc_phase * 6.28318f) * mv->volume;
         }
 
         /* Soft clip */
