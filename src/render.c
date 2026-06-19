@@ -263,6 +263,22 @@ static void draw_balls(void) {
 }
 
 /* ------------------------------------------------------------------ */
+/* Wall preview                                                        */
+/* ------------------------------------------------------------------ */
+
+static void draw_preview(void) {
+    if (preview_state == PREVIEW_NONE) return;
+    float r = (preview_state == PREVIEW_BLOCKED) ? 1.f  : 0.2f;
+    float g = (preview_state == PREVIEW_BLOCKED) ? 0.2f : 0.6f;
+    float b = (preview_state == PREVIEW_BLOCKED) ? 0.1f : 1.0f;
+    rdpq_set_mode_standard();
+    rdpq_mode_combiner(RDPQ_COMBINER_SHADE);
+    rdpq_mode_blender(RDPQ_BLENDER_MULTIPLY);
+    draw_line_quad(preview_x0, preview_y0, preview_x1, preview_y1,
+                   3.f, r, g, b, 0.5f);
+}
+
+/* ------------------------------------------------------------------ */
 /* Player cursor                                                       */
 /* ------------------------------------------------------------------ */
 
@@ -295,6 +311,9 @@ void render_frame(surface_t *disp) {
 
     /* 5. Wall lines */
     draw_walls();
+
+    /* 5.5. Wall preview */
+    if (g.state == STATE_PLAYING) draw_preview();
 
     /* 6. Balls */
     draw_balls();

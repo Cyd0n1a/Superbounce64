@@ -68,6 +68,8 @@
 #define STEP_US 16667   /* ~60 Hz fixed timestep */
 
 static void update(float dt) {
+    player_rumble_tick();
+
     if (g.state == STATE_TITLE) {
         joypad_buttons_t pressed = joypad_get_buttons_pressed(JOYPAD_PORT_1);
         if (pressed.start || pressed.a) {

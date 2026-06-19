@@ -66,12 +66,91 @@
 
 float player_x, player_y;
 
-#define CURSOR_SPEED   120.f   /* pixels per second */
+PreviewState preview_state;
+float preview_x0, preview_y0, preview_x1, preview_y1;
+
+static int   preview_horizontal = 1;  /* last chosen axis */
+static int   rumble_frames      = 0;
+
+#define CURSOR_SPEED   120.f
 #define STICK_DEADZONE  10
 
+/* Rumble for N frames (if hardware supports it) */
+static void rumble_for(int frames) {
+    if (!joypad_get_rumble_supported(JOYPAD_PORT_1)) return;
+    joypad_set_rumble_active(JOYPAD_PORT_1, true);
+    rumble_frames = frames;
+}
+
+static void rumble_tick(void) {
+    if (rumble_frames <= 0) return;
+    rumble_frames--;
+    if (rumble_frames == 0)
+        joypad_set_rumble_active(JOYPAD_PORT_1, false);
+}
+
 void player_init(void) {
-    player_x = SCREEN_W / 2.f;
-    player_y = SCREEN_H / 2.f;
+    player_x      = SCREEN_W / 2.f;
+    player_y      = SCREEN_H / 2.f;
+    preview_state = PREVIEW_NONE;
+    rumble_frames = 0;
+    joypad_set_rumble_active(JOYPAD_PORT_1, false);
+}
+
+static int balls_in_range(int x0, int y0, int x1, int y1);
+
+/* Compute the wall span for the given cursor cell and axis, in cell coords.
+   Returns 1 if clear, 0 if blocked by a ball. */
+static int compute_span(int cx, int cy, int horizontal,
+                        int *lo_out, int *hi_out) {
+    int lo, hi;
+    if (horizontal) {
+        lo = cx; hi = cx;
+        while (lo > 0        && !field_is_solid(lo - 1, cy)) lo--;
+        while (hi < GRID_W-1 && !field_is_solid(hi + 1, cy)) hi++;
+        *lo_out = lo; *hi_out = hi;
+        return !balls_in_range(lo, cy, hi, cy);
+    } else {
+        lo = cy; hi = cy;
+        while (lo > 0        && !field_is_solid(cx, lo - 1)) lo--;
+        while (hi < GRID_H-1 && !field_is_solid(cx, hi + 1)) hi++;
+        *lo_out = lo; *hi_out = hi;
+        return !balls_in_range(cx, lo, cx, hi);
+    }
+}
+
+static void update_preview(float sx, float sy) {
+    /* Only update chosen axis when stick is outside deadzone */
+    if (fabsf(sx) >= fabsf(sy) && fabsf(sx) > 0.f)
+        preview_horizontal = 1;
+    else if (fabsf(sy) > fabsf(sx) && fabsf(sy) > 0.f)
+        preview_horizontal = 0;
+
+    if (fabsf(sx) < 0.05f && fabsf(sy) < 0.05f) {
+        preview_state = PREVIEW_NONE;
+        return;
+    }
+
+    int cx = field_cell_x(player_x);
+    int cy = field_cell_y(player_y);
+    int lo, hi;
+    int clear = compute_span(cx, cy, preview_horizontal, &lo, &hi);
+
+    if (preview_horizontal) {
+        float py = cy * CELL_SIZE + CELL_SIZE * 0.5f;
+        preview_x0 = (float)(lo * CELL_SIZE);
+        preview_y0 = py;
+        preview_x1 = (float)((hi + 1) * CELL_SIZE);
+        preview_y1 = py;
+    } else {
+        float px = cx * CELL_SIZE + CELL_SIZE * 0.5f;
+        preview_x0 = px;
+        preview_y0 = (float)(lo * CELL_SIZE);
+        preview_x1 = px;
+        preview_y1 = (float)((hi + 1) * CELL_SIZE);
+    }
+
+    preview_state = clear ? PREVIEW_CLEAR : PREVIEW_BLOCKED;
 }
 
 static int balls_in_range(int x0, int y0, int x1, int y1) {
@@ -95,7 +174,6 @@ static int balls_in_range(int x0, int y0, int x1, int y1) {
 }
 
 static void place_wall(int cx, int cy, int horizontal) {
-    /* Scan outward in both directions until hitting a solid cell */
     int lo, hi;
     if (horizontal) {
         lo = cx; hi = cx;
@@ -104,6 +182,7 @@ static void place_wall(int cx, int cy, int horizontal) {
         if (balls_in_range(lo, cy, hi, cy)) {
             g.state = STATE_WALL_FAIL; g.state_timer = 0.5f;
             sfx_play(SFX_WALL_FAIL);
+            rumble_for(24);
             return;
         }
         for (int x = lo; x <= hi; x++) field[cy][x] = CELL_WALL;
@@ -114,12 +193,14 @@ static void place_wall(int cx, int cy, int horizontal) {
         if (balls_in_range(cx, lo, cx, hi)) {
             g.state = STATE_WALL_FAIL; g.state_timer = 0.5f;
             sfx_play(SFX_WALL_FAIL);
+            rumble_for(24);
             return;
         }
         for (int y = lo; y <= hi; y++) field[y][cx] = CELL_WALL;
     }
 
     sfx_play(SFX_WALL_PLACE);
+    rumble_for(6);
 
     /* Build ball position arrays for flood fill */
     float bxs[MAX_BALLS], bys[MAX_BALLS];
@@ -130,7 +211,12 @@ static void place_wall(int cx, int cy, int horizontal) {
         g.state = STATE_LEVEL_COMPLETE;
         g.state_timer = 2.0f;
         sfx_play(SFX_LEVEL_COMPLETE);
+        rumble_for(12);
     }
+}
+
+void player_rumble_tick(void) {
+    rumble_tick();
 }
 
 /* If the cursor ended up inside a solid cell (e.g. after flood-fill claimed it),
@@ -175,6 +261,8 @@ void player_update(float dt) {
     if (sx < -1.f) sx = -1.f;
     if (sy >  1.f) sy =  1.f;
     if (sy < -1.f) sy = -1.f;
+
+    update_preview(sx, sy);
 
     float nx = player_x + sx * CURSOR_SPEED * dt;
     float ny = player_y + sy * CURSOR_SPEED * dt;
