@@ -1,5 +1,12 @@
 # Release Notes
 
+## v1.0 — 2026
+
+### Gameplay
+- **Gradual wall building** — pressing A now locks the cursor in place and extends the wall outward from both sides simultaneously at 50 cells per second, rather than placing it instantly. Balls bounce off already-placed sections in real time. If a ball occupies a cell at the moment a wall head reaches it, the entire in-progress wall is erased and a life is lost — matching the core tension of KBounce. The wall completes and claims territory only once both heads connect to a boundary.
+
+---
+
 ## v0.9b — 2026
 
 ### Fixes
