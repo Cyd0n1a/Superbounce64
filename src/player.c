@@ -364,6 +364,7 @@ void player_update(float dt) {
     if (pressed.a) {
         int cx    = field_cell_x(player_x);
         int cy    = field_cell_y(player_y);
+        if (field_is_solid(cx, cy)) return; /* resolve_overlap found no empty cell */
         int horiz = (fabsf(sx) >= fabsf(sy));
 
         int lo, hi;

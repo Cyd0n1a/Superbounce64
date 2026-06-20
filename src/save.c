@@ -36,7 +36,7 @@ void save_try_load(void) {
 
     entry_structure_t entry;
     if (find_entry(&entry)) {
-        uint8_t buf[MEMPAK_BLOCK_SIZE];
+        uint8_t buf[MEMPAK_BLOCK_SIZE] __attribute__((aligned(4)));
         if (read_mempak_entry_data(0, &entry, buf) == 0) {
             SaveData *sd = (SaveData *)buf;
             if (sd->magic == SAVE_MAGIC &&
@@ -57,7 +57,7 @@ void save_write_high_score(uint32_t score) {
     if (find_entry(&old))
         delete_mempak_entry(0, &old);
 
-    uint8_t buf[MEMPAK_BLOCK_SIZE];
+    uint8_t buf[MEMPAK_BLOCK_SIZE] __attribute__((aligned(4)));
     memset(buf, 0, sizeof(buf));
     SaveData *sd = (SaveData *)buf;
     sd->magic      = SAVE_MAGIC;
