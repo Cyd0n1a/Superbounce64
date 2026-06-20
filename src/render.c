@@ -143,6 +143,9 @@ static void draw_line_glow(float x0, float y0, float x1, float y1,
 /* ------------------------------------------------------------------ */
 
 static void draw_grid_overlay(void) {
+    rdpq_set_mode_standard();
+    rdpq_mode_combiner(RDPQ_COMBINER_SHADE);
+    rdpq_mode_blender(RDPQ_BLENDER_MULTIPLY);
     /* Horizontal lines — tighter near top (perspective illusion) */
     for (int i = 0; i < 20; i++) {
         float t   = (float)i / 20.f;          /* 0 = top, 1 = bottom */
@@ -350,8 +353,12 @@ void render_frame(surface_t *disp) {
         effects_draw_flash(0.f, 0.f, 0.f, 0.55f);
     }
 
-    /* 9. Flush all RDP commands before software text draw */
+    /* 9. Flush all RDP commands before software text draw.
+     * rdpq_detach() queues a SYNC_FULL but does not block — rspq_wait()
+     * blocks until that interrupt fires, guaranteeing the RDP has finished
+     * writing to the framebuffer before the CPU begins writing text. */
     rdpq_detach();
+    rspq_wait();
 
     /* 10. Software HUD text */
     graphics_set_color(graphics_make_color(255, 255, 255, 255),
