@@ -57,6 +57,7 @@
 */
 
 #include "render.h"
+#include "title3d.h"
 #include "effects.h"
 #include "field.h"
 #include "balls.h"
@@ -315,7 +316,8 @@ static void draw_cursor(void) {
 /* ------------------------------------------------------------------ */
 
 void render_frame(surface_t *disp) {
-    rdpq_attach(disp, NULL);
+    int on_title = (g.state == STATE_TITLE);
+    rdpq_attach(disp, on_title ? title3d_get_zbuf() : NULL);
 
     /* 1. Clear */
     rdpq_set_mode_fill(RGBA32(0, 0, 0, 255));
@@ -326,6 +328,9 @@ void render_frame(surface_t *disp) {
 
     /* 3. Perspective grid */
     draw_grid_overlay();
+
+    /* 3.5. Rainbow sphere on title screen (drawn over grid, under text) */
+    if (on_title) title3d_draw(render_time);
 
     /* 4. Claimed territory dark fill */
     draw_claimed();

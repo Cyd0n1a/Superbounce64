@@ -57,6 +57,7 @@
 */
 
 #include <libdragon.h>
+#include <t3d/t3d.h>
 #include "game.h"
 #include "field.h"
 #include "balls.h"
@@ -65,6 +66,7 @@
 #include "render.h"
 #include "sfx.h"
 #include "save.h"
+#include "title3d.h"
 
 #define STEP_US 16667   /* ~60 Hz fixed timestep */
 
@@ -139,6 +141,8 @@ int main(void) {
     timer_init();
 
     dfs_init(DFS_DEFAULT_LOCATION);
+    t3d_init((T3DInitParams){});
+    title3d_init();
     sfx_init();
     effects_init();
     game_init();

@@ -1,5 +1,6 @@
 BUILD_DIR=build
 include $(N64_INST)/include/n64.mk
+include tiny3d/t3d.mk
 
 all: game.z64
 
@@ -11,7 +12,8 @@ OBJS = $(BUILD_DIR)/src/main.o \
        $(BUILD_DIR)/src/render.o \
        $(BUILD_DIR)/src/effects.o \
        $(BUILD_DIR)/src/sfx.o \
-       $(BUILD_DIR)/src/save.o
+       $(BUILD_DIR)/src/save.o \
+       $(BUILD_DIR)/src/title3d.o
 
 filesystem/mozartku.xm64: assets/mozartku.xm
 	@mkdir -p filesystem
