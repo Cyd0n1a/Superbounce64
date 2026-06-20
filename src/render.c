@@ -239,13 +239,13 @@ void render_frame(surface_t *disp) {
     /* 3.5. Rainbow sphere on title screen (drawn over grid, under text) */
     if (on_title) title3d_draw(render_time);
 
-    /* 4. Claimed territory dark fill */
-    draw_claimed();
-
-    /* 5. Walls (flat RSP quads) + 6. Balls (lit 3D spheres) via tiny3d */
+    /* 4. Walls (flat RSP quads) + 5. Balls (lit 3D spheres) via tiny3d */
     if (!on_title) play3d_draw(render_time);
 
-    /* 5.5. Wall preview */
+    /* 5.5. Claimed territory dark fill — drawn AFTER tunnel so it's not overwritten */
+    draw_claimed();
+
+    /* 5.75. Wall preview */
     if (g.state == STATE_PLAYING) draw_preview();
 
     /* 7. Cursor */

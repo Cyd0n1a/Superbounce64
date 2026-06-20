@@ -72,6 +72,8 @@ void game_init(void) {
     g.score          = 0;
     g.new_high_score = 0;
     /* g.high_score is set separately from the save system */
+    field_init();   /* clear stale cells from previous game */
+    player_init();  /* reset cursor to screen centre */
 }
 
 void game_next_level(void) {

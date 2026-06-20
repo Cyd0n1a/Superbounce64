@@ -143,9 +143,9 @@ static void build_tun_verts(void) {
         T3DVertPacked *base = tun_verts + f * TUN_QUADS * 2;
 
         for (int r = 0; r < TUN_QUADS; r++) {
-            /* Brightness fades with depth (0.5 near → 0.2 far) */
-            float val_n = 0.5f - (float) r      / TUN_RINGS * 0.3f;
-            float val_f = 0.5f - (float)(r + 1) / TUN_RINGS * 0.3f;
+            /* Brightness fades with depth (0.9 near → 0.3 far) */
+            float val_n = 0.9f - (float) r      / TUN_RINGS * 0.6f;
+            float val_f = 0.9f - (float)(r + 1) / TUN_RINGS * 0.6f;
 
             uint32_t col_n = hue_rgba(ca[f][r],     val_n);
             uint32_t col_f = hue_rgba(ca[f][r + 1], val_f);
