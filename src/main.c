@@ -67,6 +67,7 @@
 #include "sfx.h"
 #include "save.h"
 #include "title3d.h"
+#include "play3d.h"
 
 #define STEP_US 16667   /* ~60 Hz fixed timestep */
 
@@ -143,6 +144,7 @@ int main(void) {
     dfs_init(DFS_DEFAULT_LOCATION);
     t3d_init((T3DInitParams){});
     title3d_init();
+    play3d_init();
     sfx_init();
     effects_init();
     game_init();

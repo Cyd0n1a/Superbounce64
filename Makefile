@@ -13,7 +13,8 @@ OBJS = $(BUILD_DIR)/src/main.o \
        $(BUILD_DIR)/src/effects.o \
        $(BUILD_DIR)/src/sfx.o \
        $(BUILD_DIR)/src/save.o \
-       $(BUILD_DIR)/src/title3d.o
+       $(BUILD_DIR)/src/title3d.o \
+       $(BUILD_DIR)/src/play3d.o
 
 filesystem/mozartku.xm64: assets/mozartku.xm
 	@mkdir -p filesystem

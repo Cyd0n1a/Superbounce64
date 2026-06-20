@@ -58,6 +58,7 @@
 
 #include "render.h"
 #include "title3d.h"
+#include "play3d.h"
 #include "effects.h"
 #include "field.h"
 #include "balls.h"
@@ -186,100 +187,6 @@ static void draw_claimed(void) {
     }
 }
 
-/* ------------------------------------------------------------------ */
-/* Wall lines                                                          */
-/* ------------------------------------------------------------------ */
-
-static void draw_walls(void) {
-    float pulse = 0.12f + 0.06f * sinf(render_time * 4.f);
-
-    rdpq_set_mode_standard();
-    rdpq_mode_combiner(RDPQ_COMBINER_SHADE);
-    rdpq_mode_blender(RDPQ_BLENDER_MULTIPLY);
-
-    /* Draw horizontal wall segments */
-    for (int cy = 0; cy < GRID_H; cy++) {
-        int border_row = (cy == 0 || cy == GRID_H - 1);
-        int run_start = -1;
-        for (int cx = 0; cx <= GRID_W; cx++) {
-            int is_wall = (cx < GRID_W) && (field[cy][cx] == CELL_WALL);
-            if (is_wall && run_start < 0) {
-                run_start = cx;
-            } else if (!is_wall && run_start >= 0) {
-                float y  = cy * CELL_SIZE + CELL_SIZE * 0.5f;
-                float x0 = run_start * CELL_SIZE;
-                float x1 = cx * CELL_SIZE;
-                if (border_row)
-                    draw_line_quad(x0, y, x1, y, 2.f, 0.1f, 0.15f, 0.35f, 0.9f);
-                else
-                    draw_line_glow(x0, y, x1, y, 0.4f, 0.8f, 1.f, pulse);
-                run_start = -1;
-            }
-        }
-    }
-
-    /* Draw vertical wall segments */
-    for (int cx = 0; cx < GRID_W; cx++) {
-        int border_col = (cx == 0 || cx == GRID_W - 1);
-        int run_start = -1;
-        for (int cy = 0; cy <= GRID_H; cy++) {
-            int is_wall = (cy < GRID_H) && (field[cy][cx] == CELL_WALL);
-            if (is_wall && run_start < 0) {
-                run_start = cy;
-            } else if (!is_wall && run_start >= 0) {
-                float x  = cx * CELL_SIZE + CELL_SIZE * 0.5f;
-                float y0 = run_start * CELL_SIZE;
-                float y1 = cy * CELL_SIZE;
-                if (border_col)
-                    draw_line_quad(x, y0, x, y1, 2.f, 0.1f, 0.15f, 0.35f, 0.9f);
-                else
-                    draw_line_glow(x, y0, x, y1, 0.4f, 0.8f, 1.f, pulse);
-                run_start = -1;
-            }
-        }
-    }
-}
-
-/* ------------------------------------------------------------------ */
-/* Balls                                                               */
-/* ------------------------------------------------------------------ */
-
-static const float BALL_COLORS[8][3] = {
-    { 0.0f, 1.0f, 1.0f },
-    { 1.0f, 0.0f, 1.0f },
-    { 1.0f, 1.0f, 0.0f },
-    { 0.0f, 1.0f, 0.2f },
-    { 1.0f, 0.5f, 0.0f },
-    { 1.0f, 1.0f, 1.0f },
-    { 1.0f, 0.2f, 0.5f },
-    { 0.2f, 0.8f, 1.0f },
-};
-
-#define BALL_RADIUS 6.f
-#define BALL_SIDES  6
-
-static void draw_ball(float x, float y, float r, float g, float b, float pulse) {
-    for (int i = 0; i < BALL_SIDES; i++) {
-        float a0 = (float)i       / BALL_SIDES * 6.2832f;
-        float a1 = (float)(i + 1) / BALL_SIDES * 6.2832f;
-        float x0 = x + cosf(a0) * BALL_RADIUS;
-        float y0 = y + sinf(a0) * BALL_RADIUS;
-        float x1 = x + cosf(a1) * BALL_RADIUS;
-        float y1 = y + sinf(a1) * BALL_RADIUS;
-        draw_line_glow(x0, y0, x1, y1, r, g, b, pulse);
-    }
-}
-
-static void draw_balls(void) {
-    float pulse = 0.12f + 0.06f * sinf(render_time * 4.f);
-    rdpq_set_mode_standard();
-    rdpq_mode_combiner(RDPQ_COMBINER_SHADE);
-    rdpq_mode_blender(RDPQ_BLENDER_MULTIPLY);
-    for (int i = 0; i < num_balls; i++) {
-        const float *c = BALL_COLORS[balls[i].color_idx];
-        draw_ball(balls[i].x, balls[i].y, c[0], c[1], c[2], pulse);
-    }
-}
 
 /* ------------------------------------------------------------------ */
 /* Wall preview                                                        */
@@ -317,7 +224,7 @@ static void draw_cursor(void) {
 
 void render_frame(surface_t *disp) {
     int on_title = (g.state == STATE_TITLE);
-    rdpq_attach(disp, on_title ? title3d_get_zbuf() : NULL);
+    rdpq_attach(disp, on_title ? title3d_get_zbuf() : play3d_get_zbuf());
 
     /* 1. Clear */
     rdpq_set_mode_fill(RGBA32(0, 0, 0, 255));
@@ -335,14 +242,11 @@ void render_frame(surface_t *disp) {
     /* 4. Claimed territory dark fill */
     draw_claimed();
 
-    /* 5. Wall lines */
-    draw_walls();
+    /* 5. Walls (flat RSP quads) + 6. Balls (lit 3D spheres) via tiny3d */
+    if (!on_title) play3d_draw(render_time);
 
     /* 5.5. Wall preview */
     if (g.state == STATE_PLAYING) draw_preview();
-
-    /* 6. Balls */
-    draw_balls();
 
     /* 7. Cursor */
     draw_cursor();
