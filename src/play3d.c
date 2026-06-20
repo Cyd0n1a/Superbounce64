@@ -1,4 +1,5 @@
 #include "play3d.h"
+#include "bg3d.h"
 #include "balls.h"
 #include "field.h"
 #include "game.h"
@@ -233,6 +234,9 @@ void play3d_draw(float time) {
     t3d_frame_start();
     t3d_screen_clear_depth();
     t3d_viewport_attach(&play_vp);
+
+    /* === Tunnel background: CA-coloured square tube, no depth === */
+    bg3d_draw();
 
     /* === Walls: flat quads in world space, no depth test === */
     collect_wall_segs();

@@ -68,6 +68,7 @@
 #include "save.h"
 #include "title3d.h"
 #include "play3d.h"
+#include "bg3d.h"
 
 #define STEP_US 16667   /* ~60 Hz fixed timestep */
 
@@ -145,6 +146,7 @@ int main(void) {
     t3d_init((T3DInitParams){});
     title3d_init();
     play3d_init();
+    bg3d_init();
     sfx_init();
     effects_init();
     game_init();

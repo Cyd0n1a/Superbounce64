@@ -233,8 +233,8 @@ void render_frame(surface_t *disp) {
     /* 2. Psychedelic background */
     effects_draw_background(disp);
 
-    /* 3. Perspective grid */
-    draw_grid_overlay();
+    /* 3. Perspective grid (title only — gameplay uses bg3d tunnel instead) */
+    if (on_title) draw_grid_overlay();
 
     /* 3.5. Rainbow sphere on title screen (drawn over grid, under text) */
     if (on_title) title3d_draw(render_time);
