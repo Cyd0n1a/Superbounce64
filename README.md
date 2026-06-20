@@ -2,6 +2,7 @@
 
 ![Logo](https://github.com/Cydonis-Heavy-Industries-C-H-I-Ltd/Cydonis-Heavy-Industries-C-H-I-Ltd.github.io/blob/main/chi-logo-only_transparent.png?raw=true) <br>
 
+![Screenshot](https://raw.githubusercontent.com/Cyd0n1a/Superbounce64/refs/heads/master/Screenshot_20260619_075921.png) <br><br>
 An N64 game in the style of KBounce / Qix / Jezzball — claim territory by placing walls while avoiding bouncing balls. Built with [libdragon](https://github.com/DragonMinded/libdragon) & Tiny3D.
 
 ## Gameplay
