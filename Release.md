@@ -1,5 +1,13 @@
 # Release Notes
 
+## v0.12a-alpha — 2026-06-20
+
+### Fixes
+- **Save data alignment crash on real hardware** — `uint8_t buf[MEMPAK_BLOCK_SIZE]` was cast to `SaveData*` to read/write `uint32_t` fields, but a stack-allocated byte array is only guaranteed 1-byte alignment. The MIPS R4300i raises an Address Error exception on unaligned 32-bit accesses (silent on emulators, crash on hardware). Both buffer declarations now carry `__attribute__((aligned(4)))` to guarantee correct alignment. Closes #4.
+- **Wall build corrupts field when cursor stuck in solid cell** — if `resolve_overlap` failed to find a free neighbour cell (possible in a nearly-fully-claimed level), the cursor remained inside a wall or claimed cell. Pressing A would then write `CELL_WALL` over a `CELL_CLAIMED` entry, corrupting the claimed-percentage counter and potentially preventing the level-complete trigger. The A-button handler now guards against this with an early `field_is_solid()` check. Closes #6.
+
+---
+
 ## v0.11a-alpha — 2026-06-20
 
 ### Fixes
