@@ -1,5 +1,13 @@
 # Release Notes
 
+## v0.9b — 2026
+
+### Fixes
+- **Title screen text flickering on real hardware** — `rdpq_detach()` queues a SYNC_FULL to the RDP but returns immediately without blocking. On real hardware the RDP was still actively writing the frame's background and plasma overlay when the CPU began `graphics_draw_character()` calls, producing corrupted and flickering text. `rspq_wait()` is now called after `rdpq_detach()` to block until the SYNC_FULL interrupt fires, making the CPU/RDP handoff race-free. Not visible on emulators, which lack true hardware concurrency.
+- **Perspective grid rendering** — `draw_grid_overlay()` was inheriting the wrong RDP mode (`RDPQ_COMBINER_TEX_FLAT`) left over from the plasma texture draw. Grid lines now set `RDPQ_COMBINER_SHADE` + `RDPQ_BLENDER_MULTIPLY` explicitly, so per-vertex dimming renders correctly instead of sampling a fixed texture pixel.
+
+---
+
 ## v0.9a — 2026
 
 ### Performance
