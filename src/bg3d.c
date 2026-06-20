@@ -3,7 +3,6 @@
 #include <t3d/t3dmath.h>
 #include <libdragon.h>
 #include <math.h>
-#include <string.h>
 
 /* ------------------------------------------------------------------ */
 /* Constants                                                           */
@@ -34,6 +33,8 @@ static int     ca_global_hue;
 
 /* Ring Z coordinates (computed once at init) */
 static int16_t ring_z[TUN_RINGS];
+
+static int     ca_dirty = 1; /* verts need rebuild after ca_step() */
 
 /* ------------------------------------------------------------------ */
 /* Color                                                               */
@@ -122,6 +123,7 @@ static void ca_step(void) {
     for (int f = 0; f < TUN_FACES; f++)
         for (int r = 0; r < TUN_RINGS - 1; r++)
             ca[f][r] = ca_tmp[f][r];
+    ca_dirty = 1;
 }
 
 /* ------------------------------------------------------------------ */
@@ -144,8 +146,8 @@ static void build_tun_verts(void) {
 
         for (int r = 0; r < TUN_QUADS; r++) {
             /* Brightness fades with depth (0.9 near → 0.3 far) */
-            float val_n = 0.9f - (float) r      / TUN_RINGS * 0.6f;
-            float val_f = 0.9f - (float)(r + 1) / TUN_RINGS * 0.6f;
+            float val_n = 0.9f - (float) r      / (TUN_RINGS - 1) * 0.6f;
+            float val_f = 0.9f - (float)(r + 1) / (TUN_RINGS - 1) * 0.6f;
 
             uint32_t col_n = hue_rgba(ca[f][r],     val_n);
             uint32_t col_f = hue_rgba(ca[f][r + 1], val_f);
@@ -205,7 +207,10 @@ void bg3d_draw(void) {
         ca_step();
     }
 
-    build_tun_verts();
+    if (ca_dirty) {
+        build_tun_verts();
+        ca_dirty = 0;
+    }
 
     t3d_state_set_drawflags(T3D_FLAG_SHADED);
     t3d_light_set_count(0);
