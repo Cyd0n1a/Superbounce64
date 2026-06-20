@@ -2,15 +2,15 @@
 
 ![Logo](https://github.com/Cydonis-Heavy-Industries-C-H-I-Ltd/Cydonis-Heavy-Industries-C-H-I-Ltd.github.io/blob/main/chi-logo-only_transparent.png?raw=true) <br>
 
-An N64 game in the style of KBounce / Qix — claim territory by placing walls while avoiding bouncing balls. Built with [libdragon](https://github.com/DragonMinded/libdragon).
+An N64 game in the style of KBounce / Qix / Jezzball — claim territory by placing walls while avoiding bouncing balls. Built with [libdragon](https://github.com/DragonMinded/libdragon) & Tiny3D.
 
 ## Gameplay
 
-- Move your cursor around the unclaimed area with the **analog stick**
-- Press **A** to place a wall through your current position — it extends automatically in both directions until it hits existing walls
-- If a ball is in the path of a wall you're placing, you lose a life
-- Claim **75%** of the area to advance to the next level
-- Each level adds another ball and increases their speed
+- Move your cursor around the unclaimed area with the **analog stick**.
+- Press **A** to place a wall through your current position — it extends automatically in both directions until it hits existing walls.
+- If a ball is in the path of a wall you're placing, you lose a life.
+- Claim **75%** of the area to advance to the next level.
+- Each level adds another ball and increases their speed.
 
 ## Visual Style
 
