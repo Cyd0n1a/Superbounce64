@@ -1,12 +1,32 @@
+/*
+          _       _        _          _                  _                _                    _             _        
+        /\ \     /\ \     /\_\       /\ \               /\ \             /\ \     _           /\ \          / /\      
+       /  \ \    \ \ \   / / /      /  \ \____         /  \ \           /  \ \   /\_\         \ \ \        / /  \     
+      / /\ \ \    \ \ \_/ / /      / /\ \_____\       / /\ \ \         / /\ \ \_/ / /         /\ \_\      / / /\ \__  
+     / / /\ \ \    \ \___/ /      / / /\/___  /      / / /\ \ \       / / /\ \___/ /         / /\/_/     / / /\ \___\ 
+    / / /  \ \_\    \ \ \_/      / / /   / / /      / / /  \ \_\     / / /  \/____/         / / /        \ \ \ \/___/ 
+   / / /    \/_/     \ \ \      / / /   / / /      / / /   / / /    / / /    / / /         / / /          \ \ \       
+  / / /               \ \ \    / / /   / / /      / / /   / / /    / / /    / / /         / / /       _    \ \ \      
+ / / /________         \ \ \   \ \ \__/ / /      / / /___/ / /    / / /    / / /      ___/ / /__     /_/\__/ / /      
+/ / /_________\         \ \_\   \ \___\/ /      / / /____\/ /    / / /    / / /      /\__\/_/___\    \ \/___/ /       
+\/____________/          \/_/    \/_____/       \/_________/     \_/_/     \/_/       \/_________/     \_____\/        
+                                                                                                                       
+[@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+[@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+[@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@BBB@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+*/
+
 #include "field.h"
 #include <string.h>
 #include <stdint.h>
 
+_Static_assert(GRID_W * GRID_H <= UINT16_MAX, "GRID_W * GRID_H must fit in uint16_t for queue storage");
+
 uint8_t field[GRID_H][GRID_W];
 
 /* BFS queue — two parallel arrays for x and y */
-static uint8_t qx[GRID_W * GRID_H];
-static uint8_t qy[GRID_W * GRID_H];
+static uint16_t qx[GRID_W * GRID_H];
+static uint16_t qy[GRID_W * GRID_H];
 
 void field_init(void) {
     memset(field, CELL_EMPTY, sizeof(field));
@@ -40,8 +60,8 @@ int field_flood_and_claim(float *ball_xs, float *ball_ys, int num_balls) {
         if (cy >= GRID_H) cy = GRID_H - 1;
         if (!visited[cy][cx] && field[cy][cx] == CELL_EMPTY) {
             visited[cy][cx] = 1;
-            qx[tail] = (uint8_t)cx;
-            qy[tail] = (uint8_t)cy;
+            qx[tail] = (uint16_t)cx;
+            qy[tail] = (uint16_t)cy;
             tail++;
         }
     }
@@ -60,8 +80,8 @@ int field_flood_and_claim(float *ball_xs, float *ball_ys, int num_balls) {
             if (visited[ny][nx]) continue;
             if (field[ny][nx] != CELL_EMPTY) continue;
             visited[ny][nx] = 1;
-            qx[tail] = (uint8_t)nx;
-            qy[tail] = (uint8_t)ny;
+            qx[tail] = (uint16_t)nx;
+            qy[tail] = (uint16_t)ny;
             tail++;
         }
     }
