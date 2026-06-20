@@ -1,5 +1,26 @@
 # Release Notes
 
+## v0.11a-alpha — 2026-06-20
+
+### Fixes
+- **High score integer overflow** — loading a saved high score cast a raw `uint32_t` directly to `int`, which is undefined behaviour for values above `INT_MAX`. The value is now clamped to `INT_MAX` before the cast. In practice scores never reach 2 billion, but the cast was technically unsafe.
+- **`abs()` without `<stdlib.h>`** — `player.c` was calling `abs()` without explicitly including `<stdlib.h>`. Worked incidentally because libdragon pulls it in transitively, but made explicit to be self-contained.
+
+---
+
+## v0.10a-alpha — 2026-06-20
+
+### Visuals
+- **CA tunnel background during gameplay** — a square tunnel (top/right/bottom/left faces, 18 rings) now fills the playfield background. Ring colours are driven by a cellular automaton: a rotating rainbow is injected at the far (vanishing) end each frame and propagates toward the camera with blending from adjacent faces, producing flowing colour waves. Ring Z-positions are exponentially spaced so they appear evenly spaced on screen. Tunnel brightness fades from 0.9 near the camera to 0.3 at the vanishing point.
+
+### Fixes
+- **Claimed territory invisible during gameplay** — the tunnel was drawn fully opaque (vertex alpha 0xFF) and overwrote the dark-blue claimed territory fill every frame because `draw_claimed()` was called before `play3d_draw()`. Draw order corrected: tunnel renders first, claimed fill renders on top.
+- **Stale field and cursor on title screen** — after GAME OVER → title, the field array retained claimed cells from the finished game and the cursor stayed at its last play position. `game_init()` now calls `field_init()` and `player_init()` to clear both.
+- **Perspective grid shown during gameplay** — the title-screen wireframe grid was rendered unconditionally every frame. It is now gated to the title state only; the tunnel replaces it during gameplay.
+- **Build flag regression** — `build.sh` used `-Wno-error=all` which only suppresses `-Wall`-sourced errors, leaving `-Wextra`-sourced errors live. `tiny3d/Makefile` uses `-Wall -Wextra -Werror`, so this broke the tiny3d build step. Reverted to `-Wno-error` (no argument), which suppresses all Werror treatment.
+
+---
+
 ## v1.1 — 2026
 
 ### Visuals
