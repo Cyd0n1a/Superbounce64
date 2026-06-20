@@ -62,6 +62,7 @@
 #include "game.h"
 #include "sfx.h"
 #include <libdragon.h>
+#include <stdlib.h> /* for abs() */
 #include <math.h>
 
 float player_x, player_y;
