@@ -1,0 +1,182 @@
+name: CI Build & Release
+
+on:
+  push:
+    branches:
+      - '**'
+    tags:
+      - 'v*'
+  pull_request:
+    branches:
+      - '**'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      rom_filename: ${{ steps.romname.outputs.rom_name }}
+      rom_checksum: ${{ steps.romname.outputs.rom_checksum }}
+    steps:
+      - name: Checkout repository (with submodules)
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Make build script executable
+        run: chmod +x ./build.sh
+
+      - name: Run build script and capture log
+        run: |
+          set -euxo pipefail
+          mkdir -p build out
+          ./build.sh 2>&1 | tee build/build.log
+        shell: bash
+
+      - name: Find ROM file produced by build
+        id: findrom
+        run: |
+          set -eux
+          # look for common ROM paths first
+          if [ -f "./game.z64" ]; then
+            ROM="./game.z64"
+          elif [ -f "build/game.z64" ]; then
+            ROM="build/game.z64"
+          elif [ -f "build/game.n64" ]; then
+            ROM="build/game.n64"
+          else
+            ROM=$(find . -maxdepth 3 -type f \( -name '*.z64' -o -name '*.n64' \) | head -n 1 || true)
+          fi
+          if [ -z "${ROM}" ]; then
+            echo "No ROM artifact found" >&2
+            exit 1
+          fi
+          echo "rom_path=${ROM}" >> $GITHUB_OUTPUT
+          echo "Found ROM: ${ROM}"
+        shell: bash
+
+      - name: Compute ROM filename, copy, and checksum
+        id: romname
+        run: |
+          set -eux
+          REPO_NAME="${GITHUB_REPOSITORY##*/}"
+          # Determine version from tag or fallback to short sha
+          if [[ "${GITHUB_REF}" =~ ^refs/tags/ ]]; then
+            TAG="${GITHUB_REF#refs/tags/}"
+            VERSION="${TAG}"
+          else
+            VERSION="g${GITHUB_SHA:0:7}"
+          fi
+          ROM_NAME="${REPO_NAME}-${VERSION}.z64"
+          ROM_PATH="${{ steps.findrom.outputs.rom_path }}"
+          mkdir -p out
+          cp "${ROM_PATH}" "out/${ROM_NAME}"
+          # compute sha256
+          sha256sum "out/${ROM_NAME}" | awk '{print $1}' > "out/${ROM_NAME}.sha256"
+          ROM_CHECKSUM=$(cat "out/${ROM_NAME}.sha256")
+          echo "rom_name=${ROM_NAME}" >> $GITHUB_OUTPUT
+          echo "rom_checksum=${ROM_CHECKSUM}" >> $GITHUB_OUTPUT
+          echo "rom_path=out/${ROM_NAME}" >> $GITHUB_OUTPUT
+          ls -l out
+        shell: bash
+
+      - name: Upload ROM + checksum artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: game-rom
+          path: out/
+          retention-days: 7
+
+      - name: Upload build log artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log
+          path: build/build.log
+          retention-days: 7
+
+  publish:
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifacts from build
+        uses: actions/download-artifact@v4
+        with:
+          name: game-rom
+          path: artifact
+
+      - name: Download build log artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: build-log
+          path: artifact
+
+      - name: Locate ROM file in artifact
+        id: locate
+        run: |
+          set -eux
+          # file should be at artifact/<ROM_NAME>
+          ROM_FILENAME="${{ needs.build.outputs.rom_filename }}"
+          if [ -f "artifact/${ROM_FILENAME}" ]; then
+            echo "rom_path=artifact/${ROM_FILENAME}" >> $GITHUB_OUTPUT
+            echo "rom_filename=${ROM_FILENAME}" >> $GITHUB_OUTPUT
+          else
+            # fallback find
+            ROM=$(find artifact -maxdepth 2 -type f \( -name '*.z64' -o -name '*.n64' \) | head -n 1 || true)
+            if [ -z "$ROM" ]; then
+              echo "No ROM file found in artifact" >&2
+              exit 1
+            fi
+            BASENAME=$(basename "$ROM")
+            echo "rom_path=${ROM}" >> $GITHUB_OUTPUT
+            echo "rom_filename=${BASENAME}" >> $GITHUB_OUTPUT
+          fi
+          # locate build log
+          if [ -f "artifact/build/build.log" ]; then
+            echo "build_log=artifact/build/build.log" >> $GITHUB_OUTPUT
+          elif [ -f "artifact/build.log" ]; then
+            echo "build_log=artifact/build.log" >> $GITHUB_OUTPUT
+          else
+            echo "build_log=" >> $GITHUB_OUTPUT
+          fi
+        shell: bash
+
+      - name: Create GitHub Release with checksum in body
+        id: create_release
+        uses: actions/create-release@v1
+        with:
+          tag_name: ${{ github.ref_name }}
+          release_name: ${{ github.ref_name }}
+          body: |
+            Automated release for ${{ github.ref_name }} (built by CI).
+
+            ROM: ${{ needs.build.outputs.rom_filename }}
+            SHA256: ${{ needs.build.outputs.rom_checksum }}
+
+            Build log is attached as an asset.
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload ROM to Release
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ${{ steps.locate.outputs.rom_path }}
+          asset_name: ${{ steps.locate.outputs.rom_filename }}
+          asset_content_type: application/octet-stream
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload build log to Release (if present)
+        if: ${{ steps.locate.outputs.build_log != '' }}
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ${{ steps.locate.outputs.build_log }}
+          asset_name: build.log
+          asset_content_type: text/plain
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
