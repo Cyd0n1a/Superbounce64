@@ -3,9 +3,8 @@
 
 #include <libdragon.h>
 
-void       play3d_init(void);
-void       play3d_destroy(void);
-surface_t *play3d_get_zbuf(void);
-void       play3d_draw(float time);
+void play3d_init(void);
+void play3d_destroy(void);
+void play3d_draw(float time);
 
 #endif

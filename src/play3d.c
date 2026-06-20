@@ -36,7 +36,6 @@ static T3DMat4FP     *ball_mats;   /* BMAX_BALLS */
 static T3DMat4FP     *wall_imat;   /* uncached identity model matrix for wall passes */
 static T3DVertPacked *wall_verts;  /* MAX_WALL_SEGS * 2, reused per glow pass */
 static T3DViewport    play_vp;
-static surface_t      play_zbuf;
 
 /* Neon colours per ball index — matches BALL_COLORS in render.c */
 static const uint8_t BCOLORS[8][3] = {
@@ -60,14 +59,10 @@ void play3d_init(void) {
     wall_imat  = malloc_uncached(sizeof(T3DMat4FP));
     wall_verts = malloc_uncached(sizeof(T3DVertPacked) * MAX_WALL_SEGS * 2);
     play_vp    = t3d_viewport_create_buffered(3);
-    play_zbuf  = surface_alloc(FMT_RGBA16, 320, 240);
     t3d_mat4fp_identity(wall_imat);
 }
 
-surface_t *play3d_get_zbuf(void) { return &play_zbuf; }
-
 void play3d_destroy(void) {
-    surface_free(&play_zbuf);
     t3d_viewport_destroy(&play_vp);
     free_uncached(wall_verts);
     free_uncached(wall_imat);

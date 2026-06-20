@@ -224,7 +224,7 @@ static void draw_cursor(void) {
 
 void render_frame(surface_t *disp) {
     int on_title = (g.state == STATE_TITLE);
-    rdpq_attach(disp, on_title ? title3d_get_zbuf() : play3d_get_zbuf());
+    rdpq_attach(disp, title3d_get_zbuf());
 
     /* 1. Clear */
     rdpq_set_mode_fill(RGBA32(0, 0, 0, 255));
