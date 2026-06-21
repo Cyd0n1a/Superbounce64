@@ -12,6 +12,8 @@ An N64 game in the style of KBounce / Qix / Jezzball — claim territory by plac
 - If a ball is in the path of a wall you're placing, you lose a life.
 - Claim **75%** of the area to advance to the next level.
 - Each level adds another ball and increases their speed.
+- Try to get a high score! Scores *should* be saved to the controller pak, if one is plugged in/connected.
+- Rumble pak support.
 
 ## Visual Style
 
