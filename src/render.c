@@ -67,7 +67,12 @@
 #include <math.h>
 #include <stdio.h>
 
-static float render_time = 0.f;
+static float    render_time = 0.f;
+static sprite_t *ld_logo;
+
+void render_init(void) {
+    ld_logo = sprite_load("rom:/ld-logo.sprite");
+}
 
 void render_set_time(float t) { render_time = t; }
 
@@ -238,6 +243,14 @@ void render_frame(surface_t *disp) {
 
     /* 3.5. Rainbow sphere on title screen (drawn over grid, under text) */
     if (on_title) title3d_draw(render_time);
+
+    /* 3.6. Libdragon logo badge — bottom-right corner, title screen only */
+    if (on_title && ld_logo) {
+        rdpq_set_mode_standard();
+        rdpq_mode_combiner(RDPQ_COMBINER_TEX_FLAT);
+        rdpq_mode_alphacompare(1);
+        rdpq_sprite_blit(ld_logo, 270.f, 211.f, NULL);
+    }
 
     /* 4. Walls (flat RSP quads) + 5. Balls (lit 3D spheres) via tiny3d */
     if (!on_title) play3d_draw(render_time);

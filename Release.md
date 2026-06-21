@@ -1,5 +1,12 @@
 # Release Notes
 
+## v0.13a-alpha — 2026-06-21
+
+### Visuals
+- **Libdragon logo on title screen** — a 48×27 "Built with libdragon" badge now appears in the bottom-right corner of the title screen, converted to RGBA16 sprite format and loaded from the DFS at startup.
+
+---
+
 ## v0.12a-alpha — 2026-06-20
 
 ### Fixes

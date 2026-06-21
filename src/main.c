@@ -107,6 +107,7 @@ int main(void) {
     timer_init();
 
     dfs_init(DFS_DEFAULT_LOCATION);
+    render_init();
     t3d_init((T3DInitParams){});
     title3d_init();
     play3d_init();
