@@ -69,9 +69,11 @@
 
 static float    render_time = 0.f;
 static sprite_t *ld_logo;
+static sprite_t *cydonis_logo;
 
 void render_init(void) {
-    ld_logo = sprite_load("rom:/ld-logo.sprite");
+    ld_logo      = sprite_load("rom:/ld-logo.sprite");
+    cydonis_logo = sprite_load("rom:/cydonis-logo.sprite");
 }
 
 void render_set_time(float t) { render_time = t; }
@@ -228,6 +230,39 @@ static void draw_cursor(void) {
 /* ------------------------------------------------------------------ */
 
 void render_frame(surface_t *disp) {
+    /* Fullscreen Cydonis splash on boot — fade in, hold, fade out */
+    if (g.state == STATE_SPLASH) {
+        rdpq_attach(disp, NULL);
+
+        rdpq_set_mode_fill(RGBA32(0, 0, 0, 255));
+        rdpq_fill_rectangle(0, 0, SCREEN_W, SCREEN_H);
+
+        if (cydonis_logo) {
+            rdpq_set_mode_standard();
+            rdpq_mode_combiner(RDPQ_COMBINER_TEX_FLAT);
+            rdpq_mode_alphacompare(1);
+            /* 320×173 logo centred vertically: y = (240-173)/2 = 33 */
+            rdpq_sprite_blit(cydonis_logo, 0.f, 33.f, NULL);
+        }
+
+        float t = g.state_timer;
+        float overlay;
+        if (t < SPLASH_FADE_IN) {
+            overlay = 1.f - t / SPLASH_FADE_IN;
+        } else if (t < SPLASH_FADE_IN + SPLASH_HOLD) {
+            overlay = 0.f;
+        } else {
+            overlay = (t - SPLASH_FADE_IN - SPLASH_HOLD) / SPLASH_FADE_OUT;
+            if (overlay > 1.f) overlay = 1.f;
+        }
+        effects_draw_flash(0.f, 0.f, 0.f, overlay);
+
+        rdpq_detach();
+        rspq_wait();
+        display_show(disp);
+        return;
+    }
+
     int on_title = (g.state == STATE_TITLE);
     rdpq_attach(disp, title3d_get_zbuf());
 

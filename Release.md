@@ -2,6 +2,16 @@
 
 ---
 
+## v0.14a-alpha — 2026-06-21
+
+### Visuals
+- **Cydonis splash screen** — a fullscreen Cydonis Heavy Industries logo fades in and out on boot before the title screen appears (0.8 s fade-in, 1.2 s hold, 0.8 s fade-out). Press Start or A to skip. The logo (320×173 RGBA16 sprite, letterboxed in 320×240) is loaded from the DFS and rendered against a black background.
+
+### Audio
+- **Futuristic stereo intro sweep** — a procedural four-voice sine sweep (500→1800 Hz over 2.5 s) plays during the splash. Each echo voice starts slightly later (100/220/360 ms), creating a reverb tail. All four voices sweep from left to right using constant-power panning. Mozart music is deferred until after the splash.
+
+---
+
 ## v0.13a-alpha — 2026-06-21
 
 ### Visuals

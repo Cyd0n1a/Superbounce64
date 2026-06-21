@@ -15,6 +15,7 @@
 #define MAX_LIVES   3
 
 typedef enum {
+    STATE_SPLASH,
     STATE_TITLE,
     STATE_PLAYING,
     STATE_PAUSED,
@@ -22,6 +23,11 @@ typedef enum {
     STATE_LEVEL_COMPLETE,
     STATE_GAME_OVER,
 } GameState;
+
+#define SPLASH_FADE_IN   0.8f
+#define SPLASH_HOLD      1.2f
+#define SPLASH_FADE_OUT  0.8f
+#define SPLASH_TOTAL     2.8f
 
 typedef struct {
     GameState state;

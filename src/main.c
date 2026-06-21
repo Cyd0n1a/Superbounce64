@@ -36,6 +36,18 @@
 static void update(float dt) {
     player_rumble_tick();
 
+    if (g.state == STATE_SPLASH) {
+        joypad_buttons_t pressed = joypad_get_buttons_pressed(JOYPAD_PORT_1);
+        if (pressed.start || pressed.a || g.state_timer >= SPLASH_TOTAL) {
+            g.state       = STATE_TITLE;
+            g.state_timer = 0.f;
+            sfx_start_music();
+        } else {
+            g.state_timer += dt;
+        }
+        return;
+    }
+
     if (g.state == STATE_TITLE) {
         save_try_load();
         /* Sync loaded high score into game state once available */
@@ -115,6 +127,11 @@ int main(void) {
     sfx_init();
     effects_init();
     game_init();
+
+    /* Boot-only splash — set state here so game_init() restarts skip it */
+    g.state       = STATE_SPLASH;
+    g.state_timer = 0.f;
+    sfx_play(SFX_SPLASH_INTRO);
 
     long long prev  = timer_ticks();
     long long accum = 0;

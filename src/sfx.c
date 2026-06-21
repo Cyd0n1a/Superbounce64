@@ -14,11 +14,14 @@ typedef struct {
     int   active;
     int   pos;
     int   len;
+    int   delay;         /* samples to skip before activating */
     float phase;
     float freq_start;
     float freq_end;
     int   wave;          /* 0=sine  1=square  2=noise */
     float volume;
+    float pan_start;     /* 0.0=left  0.5=center  1.0=right */
+    float pan_end;
     float note_freqs[4];
     int   note_len;
     int   num_notes;
@@ -47,6 +50,8 @@ void sfx_play(SfxId id) {
             v.freq_end   = 150.f;
             v.wave       = 0;
             v.volume     = 0.40f;
+            v.pan_start  = 0.5f;
+            v.pan_end    = 0.5f;
             voice_start(0, &v);
             break;
 
@@ -56,6 +61,8 @@ void sfx_play(SfxId id) {
             v.freq_end   = 90.f;
             v.wave       = 1;
             v.volume     = 0.50f;
+            v.pan_start  = 0.5f;
+            v.pan_end    = 0.5f;
             voice_start(1, &v);
             break;
 
@@ -63,6 +70,8 @@ void sfx_play(SfxId id) {
             v.len           = (int)(SAMPLE_RATE * 0.36f);
             v.wave          = 0;
             v.volume        = 0.45f;
+            v.pan_start     = 0.5f;
+            v.pan_end       = 0.5f;
             v.num_notes     = 3;
             v.note_len      = (int)(SAMPLE_RATE * 0.12f);
             v.note_freqs[0] = 523.25f;
@@ -77,25 +86,58 @@ void sfx_play(SfxId id) {
             v.freq_start = 0.f;
             v.wave       = 2;
             v.volume     = 0.18f;
+            v.pan_start  = 0.5f;
+            v.pan_end    = 0.5f;
             voice_start(3, &v);
             bounce_cooldown = (int)(SAMPLE_RATE * 0.08f);
             break;
+
+        case SFX_SPLASH_INTRO: {
+            /* Rising sine sweep 500→1800 Hz, sweeping L→R over 2.5s,
+             * with three echo voices at increasing delay for reverb tail */
+            int len = (int)(SAMPLE_RATE * 2.5f);
+            v.len        = len;
+            v.freq_start = 500.f;
+            v.freq_end   = 1800.f;
+            v.wave       = 0;
+
+            v.volume    = 0.45f; v.pan_start = 0.0f; v.pan_end = 1.0f;
+            v.delay     = 0;
+            voice_start(0, &v);
+
+            v.volume    = 0.30f; v.pan_start = 0.1f;
+            v.delay     = (int)(SAMPLE_RATE * 0.10f);
+            voice_start(1, &v);
+
+            v.volume    = 0.18f; v.pan_start = 0.2f;
+            v.delay     = (int)(SAMPLE_RATE * 0.22f);
+            voice_start(2, &v);
+
+            v.volume    = 0.10f; v.pan_start = 0.3f;
+            v.delay     = (int)(SAMPLE_RATE * 0.36f);
+            voice_start(3, &v);
+            break;
+        }
     }
 }
 
 /* ------------------------------------------------------------------ */
 /* Add procedural SFX on top of the buffer already filled by mixer_poll */
 
+#define PI_HALF 1.5707963f
+
 static void sfx_mix_into(short *buf, size_t n_frames) {
     if (bounce_cooldown > 0)
         bounce_cooldown -= (int)n_frames;
 
     for (size_t i = 0; i < n_frames; i++) {
-        float sample = 0.f;
+        float sample_L = 0.f, sample_R = 0.f;
 
         for (int v = 0; v < MAX_VOICES; v++) {
             Voice *vp = &voices[v];
             if (!vp->active) continue;
+
+            if (vp->delay > 0) { vp->delay--; continue; }
 
             float t = (float)vp->pos / (float)vp->len;
 
@@ -126,18 +168,22 @@ static void sfx_mix_into(short *buf, size_t n_frames) {
                 env = 1.f - t;
             }
 
-            sample += osc * env * vp->volume;
+            float mono = osc * env * vp->volume;
+            float pan  = vp->pan_start + (vp->pan_end - vp->pan_start) * t;
+            sample_L += mono * cosf(pan * PI_HALF);
+            sample_R += mono * sinf(pan * PI_HALF);
 
             vp->pos++;
             if (vp->pos >= vp->len) vp->active = 0;
         }
 
-        if (sample >  1.f) sample =  1.f;
-        if (sample < -1.f) sample = -1.f;
+        if (sample_L >  1.f) sample_L =  1.f;
+        if (sample_L < -1.f) sample_L = -1.f;
+        if (sample_R >  1.f) sample_R =  1.f;
+        if (sample_R < -1.f) sample_R = -1.f;
 
-        short sfx = (short)(sample * 28000.f);
-        int L = (int)buf[i * 2]     + sfx;
-        int R = (int)buf[i * 2 + 1] + sfx;
+        int L = (int)buf[i * 2]     + (short)(sample_L * 28000.f);
+        int R = (int)buf[i * 2 + 1] + (short)(sample_R * 28000.f);
         buf[i * 2]     = (short)(L >  32767 ?  32767 : L < -32768 ? -32768 : L);
         buf[i * 2 + 1] = (short)(R >  32767 ?  32767 : R < -32768 ? -32768 : R);
     }
@@ -155,8 +201,14 @@ void sfx_init(void) {
 
     xm64player_open(&music_player, "rom:/mozartku.xm64");
     xm64player_set_vol(&music_player, 0.75f);
-    xm64player_play(&music_player, 0);
-    music_loaded = true;
+    /* Music is started separately by sfx_start_music() after the splash */
+}
+
+void sfx_start_music(void) {
+    if (!music_loaded) {
+        xm64player_play(&music_player, 0);
+        music_loaded = true;
+    }
 }
 
 void sfx_poll(void) {

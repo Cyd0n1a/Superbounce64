@@ -27,7 +27,12 @@ filesystem/ld-logo.sprite: assets/ld-logo.png
 	@echo "    [SPRITE] $@"
 	$(N64_MKSPRITE) -f RGBA16 -o filesystem "$<"
 
-$(BUILD_DIR)/game.dfs: filesystem/mozartku.xm64 filesystem/ld-logo.sprite
+filesystem/cydonis-logo.sprite: assets/cydonis-logo.png
+	@mkdir -p filesystem
+	@echo "    [SPRITE] $@"
+	$(N64_MKSPRITE) -f RGBA16 -o filesystem "$<"
+
+$(BUILD_DIR)/game.dfs: filesystem/mozartku.xm64 filesystem/ld-logo.sprite filesystem/cydonis-logo.sprite
 
 game.z64: N64_ROM_TITLE="Superbounce64"
 game.z64: $(BUILD_DIR)/game.elf $(BUILD_DIR)/game.dfs
