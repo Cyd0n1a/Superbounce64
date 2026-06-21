@@ -10,6 +10,9 @@
 ### Audio
 - **Futuristic stereo intro sweep** — a procedural four-voice sine sweep (500→1800 Hz over 2.5 s) plays during the splash. Each echo voice starts slightly later (100/220/360 ms), creating a reverb tail. All four voices sweep from left to right using constant-power panning. Mozart music is deferred until after the splash.
 
+### Fixes
+- **Sprites rendered black** — `RDPQ_COMBINER_TEX_FLAT` multiplies `TEXEL0 × PRIM` in the RGB stage. Without an explicit `prim_color` set to white before each sprite blit, `PRIM` defaults to `(0,0,0)` and all pixels render as black. Fixed by calling `rdpq_set_prim_color(RGBA32(255,255,255,255))` before `rdpq_sprite_blit` for both the splash logo and the libdragon title-screen badge.
+
 ---
 
 ## v0.13a-alpha — 2026-06-21
