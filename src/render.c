@@ -240,7 +240,7 @@ void render_frame(surface_t *disp) {
         if (cydonis_logo) {
             rdpq_set_mode_standard();
             rdpq_mode_combiner(RDPQ_COMBINER_TEX_FLAT);
-            rdpq_mode_alphacompare(1);
+            rdpq_set_prim_color(RGBA32(255, 255, 255, 255));
             /* 320×173 logo centred vertically: y = (240-173)/2 = 33 */
             rdpq_sprite_blit(cydonis_logo, 0.f, 33.f, NULL);
         }
@@ -283,6 +283,7 @@ void render_frame(surface_t *disp) {
     if (on_title && ld_logo) {
         rdpq_set_mode_standard();
         rdpq_mode_combiner(RDPQ_COMBINER_TEX_FLAT);
+        rdpq_set_prim_color(RGBA32(255, 255, 255, 255));
         rdpq_mode_alphacompare(1);
         rdpq_sprite_blit(ld_logo, 270.f, 211.f, NULL);
     }
