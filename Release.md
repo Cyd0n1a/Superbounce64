@@ -38,7 +38,7 @@
 
 ---
 
-## v0.92d — 2026.
+## v0.9.2(d) — 2026.
 
 ### Visuals
 - **Rainbow sphere on title screen** — a rotating, squishing UV-sphere rendered in hardware 3D (via tiny3d / RSP microcode) now sits behind the wavy title text. Per-vertex colours cycle through the full rainbow spectrum and scroll over time, with a subtle squish deformation driven by a sine wave on the scale axes. Rendered with a dedicated 16-bit depth buffer; no performance impact on gameplay screens.
