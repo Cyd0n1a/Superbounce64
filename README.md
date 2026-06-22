@@ -1,4 +1,6 @@
-![Logo2](https://github.com/Cyd0n1a/Superbounce64/blob/master/n64-logo.png?raw=true) # Superbounce64
+![Logo2](https://github.com/Cyd0n1a/Superbounce64/blob/master/n64-logo.png?raw=true)
+
+## Superbounce64
 
 ![Logo](https://github.com/Cydonis-Heavy-Industries-C-H-I-Ltd/Cydonis-Heavy-Industries-C-H-I-Ltd.github.io/blob/main/chi-logo-only_transparent.png?raw=true) <br> <br>
 <br>
