@@ -13,5 +13,7 @@ void sfx_init(void);
 void sfx_start_music(void);
 void sfx_play(SfxId id);
 void sfx_poll(void);   /* call once per main loop iteration */
+void sfx_video_start(void);
+void sfx_video_stop(void);
 
 #endif

@@ -71,12 +71,23 @@ static float    render_time = 0.f;
 static sprite_t *ld_logo;
 static sprite_t *cydonis_logo;
 
+static sprite_t *video_frame_sprite = NULL;
+static int       video_frame_idx    = -1;
+
 void render_init(void) {
     ld_logo      = sprite_load("rom:/ld-logo.sprite");
     cydonis_logo = sprite_load("rom:/cydonis-logo.sprite");
 }
 
 void render_set_time(float t) { render_time = t; }
+
+void render_video_free(void) {
+    if (video_frame_sprite) {
+        sprite_free(video_frame_sprite);
+        video_frame_sprite = NULL;
+        video_frame_idx    = -1;
+    }
+}
 
 /* ------------------------------------------------------------------ */
 /* Wavy rainbow text                                                   */
@@ -230,6 +241,39 @@ static void draw_cursor(void) {
 /* ------------------------------------------------------------------ */
 
 void render_frame(surface_t *disp) {
+    /* Video splash — letterboxed 160×90 frames upscaled 2× to 320×180, y-centred */
+    if (g.state == STATE_VIDEO) {
+        int frame = (int)(g.state_timer * VIDEO_FPS);
+        if (frame >= VIDEO_FRAME_COUNT) frame = VIDEO_FRAME_COUNT - 1;
+
+        if (frame != video_frame_idx) {
+            if (video_frame_sprite) sprite_free(video_frame_sprite);
+            char path[48];
+            snprintf(path, sizeof(path), "rom:/splash_frames/f%03d.sprite", frame);
+            video_frame_sprite = sprite_load(path);
+            video_frame_idx    = frame;
+        }
+
+        rdpq_attach(disp, NULL);
+        rdpq_set_mode_fill(RGBA32(0, 0, 0, 255));
+        rdpq_fill_rectangle(0, 0, SCREEN_W, SCREEN_H);
+
+        if (video_frame_sprite) {
+            rdpq_set_mode_standard();
+            rdpq_mode_combiner(RDPQ_COMBINER_TEX_FLAT);
+            rdpq_set_prim_color(RGBA32(255, 255, 255, 255));
+            rdpq_mode_filter(FILTER_BILINEAR);
+            rdpq_blitparms_t p = { .scale_x = 2.f, .scale_y = 2.f, .filtering = true };
+            /* 320×180 centred in 320×240: top offset = (240-180)/2 = 30 */
+            rdpq_sprite_blit(video_frame_sprite, 0.f, 30.f, &p);
+        }
+
+        rdpq_detach();
+        rspq_wait();
+        display_show(disp);
+        return;
+    }
+
     /* Fullscreen Cydonis splash on boot — fade in, hold, fade out */
     if (g.state == STATE_SPLASH) {
         rdpq_attach(disp, NULL);

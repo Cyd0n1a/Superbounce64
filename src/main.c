@@ -36,6 +36,20 @@
 static void update(float dt) {
     player_rumble_tick();
 
+    if (g.state == STATE_VIDEO) {
+        joypad_buttons_t pressed = joypad_get_buttons_pressed(JOYPAD_PORT_1);
+        if (pressed.start || pressed.a || g.state_timer >= VIDEO_DURATION) {
+            sfx_video_stop();
+            render_video_free();
+            g.state       = STATE_SPLASH;
+            g.state_timer = 0.f;
+            sfx_play(SFX_SPLASH_INTRO);
+        } else {
+            g.state_timer += dt;
+        }
+        return;
+    }
+
     if (g.state == STATE_SPLASH) {
         joypad_buttons_t pressed = joypad_get_buttons_pressed(JOYPAD_PORT_1);
         if (pressed.start || pressed.a || g.state_timer >= SPLASH_TOTAL) {
@@ -128,10 +142,10 @@ int main(void) {
     effects_init();
     game_init();
 
-    /* Boot-only splash — set state here so game_init() restarts skip it */
-    g.state       = STATE_SPLASH;
+    /* Boot-only video + logo splash — set state here so game_init() restart skips it */
+    g.state       = STATE_VIDEO;
     g.state_timer = 0.f;
-    sfx_play(SFX_SPLASH_INTRO);
+    sfx_video_start();
 
     long long prev  = timer_ticks();
     long long accum = 0;

@@ -17,6 +17,9 @@ OBJS = $(BUILD_DIR)/src/main.o \
        $(BUILD_DIR)/src/play3d.o \
        $(BUILD_DIR)/src/bg3d.o
 
+SPLASH_PNG_FRAMES    = $(wildcard assets/splash_frames/f*.png)
+SPLASH_SPRITE_FRAMES = $(patsubst assets/splash_frames/%.png,filesystem/splash_frames/%.sprite,$(SPLASH_PNG_FRAMES))
+
 filesystem/mozartku.xm64: assets/mozartku.xm
 	@mkdir -p filesystem
 	@echo "    [AUDIO] $@"
@@ -32,7 +35,16 @@ filesystem/cydonis-logo.sprite: assets/cydonis-logo.png
 	@echo "    [SPRITE] $@"
 	$(N64_MKSPRITE) -f RGBA16 -o filesystem "$<"
 
-$(BUILD_DIR)/game.dfs: filesystem/mozartku.xm64 filesystem/ld-logo.sprite filesystem/cydonis-logo.sprite
+filesystem/splash_frames/%.sprite: assets/splash_frames/%.png
+	@mkdir -p filesystem/splash_frames
+	$(N64_MKSPRITE) -f RGBA16 -o filesystem/splash_frames "$<"
+
+filesystem/chi_splash.wav64: assets/chi_splash.wav
+	@mkdir -p filesystem
+	@echo "    [AUDIO] $@"
+	$(N64_AUDIOCONV) -o filesystem "$<"
+
+$(BUILD_DIR)/game.dfs: filesystem/mozartku.xm64 filesystem/ld-logo.sprite filesystem/cydonis-logo.sprite filesystem/chi_splash.wav64 $(SPLASH_SPRITE_FRAMES)
 
 game.z64: N64_ROM_TITLE="Superbounce64"
 game.z64: $(BUILD_DIR)/game.elf $(BUILD_DIR)/game.dfs

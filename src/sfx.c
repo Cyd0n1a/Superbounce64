@@ -10,6 +10,9 @@
 static xm64player_t music_player;
 static bool         music_loaded;
 
+static wav64_t video_wav;
+static bool    video_wav_loaded;
+
 typedef struct {
     int   active;
     int   pos;
@@ -193,8 +196,9 @@ static void sfx_mix_into(short *buf, size_t n_frames) {
 
 void sfx_init(void) {
     memset(voices, 0, sizeof(voices));
-    bounce_cooldown = 0;
-    music_loaded    = false;
+    bounce_cooldown   = 0;
+    music_loaded      = false;
+    video_wav_loaded  = false;
 
     audio_init(SAMPLE_RATE, 4);
     mixer_init(32);
@@ -208,6 +212,22 @@ void sfx_start_music(void) {
     if (!music_loaded) {
         xm64player_play(&music_player, 0);
         music_loaded = true;
+    }
+}
+
+void sfx_video_start(void) {
+    if (!video_wav_loaded) {
+        wav64_open(&video_wav, "rom:/chi_splash.wav64");
+        wav64_set_loop(&video_wav, false);
+        video_wav_loaded = true;
+    }
+    wav64_play(&video_wav, 28);
+}
+
+void sfx_video_stop(void) {
+    if (video_wav_loaded) {
+        wav64_close(&video_wav);
+        video_wav_loaded = false;
     }
 }
 

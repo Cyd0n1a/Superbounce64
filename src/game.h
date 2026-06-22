@@ -15,6 +15,7 @@
 #define MAX_LIVES   3
 
 typedef enum {
+    STATE_VIDEO,
     STATE_SPLASH,
     STATE_TITLE,
     STATE_PLAYING,
@@ -23,6 +24,12 @@ typedef enum {
     STATE_LEVEL_COMPLETE,
     STATE_GAME_OVER,
 } GameState;
+
+#define VIDEO_FPS           15
+#define VIDEO_FRAME_COUNT   75
+#define VIDEO_DURATION      5.0f
+#define VIDEO_FRAME_W       160
+#define VIDEO_FRAME_H       90
 
 #define SPLASH_FADE_IN   0.8f
 #define SPLASH_HOLD      1.2f
