@@ -1,10 +1,10 @@
 # Superbounce64
 
-![Logo](https://github.com/Cydonis-Heavy-Industries-C-H-I-Ltd/Cydonis-Heavy-Industries-C-H-I-Ltd.github.io/blob/main/chi-logo-only_transparent.png?raw=true) <br>
+![Logo](https://github.com/Cydonis-Heavy-Industries-C-H-I-Ltd/Cydonis-Heavy-Industries-C-H-I-Ltd.github.io/blob/main/chi-logo-only_transparent.png?raw=true) ![Logo2](https://github.com/Cyd0n1a/Superbounce64/blob/master/n64-logo.png?raw=true) <br> <br>
 <br>
 ![Screenshot](https://raw.githubusercontent.com/Cyd0n1a/Superbounce64/refs/heads/master/Screenshot_20260619_075921.png) <br><br>
-An N64 game in the style of KBounce / Qix / Jezzball — claim territory by placing walls while avoiding bouncing balls. Built with [libdragon](https://github.com/DragonMinded/libdragon) & Tiny3D.
-
+An N64 game in the style of KBounce / Qix / Jezzball — claim territory by placing walls while avoiding bouncing balls. Built with [libdragon](https://github.com/DragonMinded/libdragon) & Tiny3D.<br>
+![Logo3](https://github.com/Cyd0n1a/Superbounce64/blob/master/ld-logo.png?raw=true) <br>
 ## Gameplay
 
 - Move your cursor around the unclaimed area with the **analog stick**.
