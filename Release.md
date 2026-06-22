@@ -2,6 +2,16 @@
 
 ---
 
+## v0.15a-alpha — 2026-06-22
+
+### Visuals
+- **CHI logo video splash** — the Cydonis Heavy Industries animated logo stinger now plays as a 5-second video before the static logo splash on boot. Rendered as 75 RGBA16 sprite frames (160×90) bilinearly upscaled 2× to 320×180, letterboxed in the 320×240 frame. Press Start or A to skip.
+
+### Audio
+- **Video audio playback** — the original stereo audio from the logo stinger plays via libdragon's WAV64 mixer during the video splash, then the existing procedural sine-sweep SFX plays during the static logo as before.
+
+---
+
 ## v0.14a-alpha — 2026-06-21
 
 ### Visuals
